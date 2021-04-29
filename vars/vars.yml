@@ -1,15 +1,53 @@
 ---
 
+#
+# You can add your settings here.
+# These settings will be taken into account when running the playbook.
+#
+
+
+# --- REMOTE HOST INFORMATIONS ---------------------------------------
 host_ipv4: "192.168.1.40"
+
+
+# --- APACHE HTTP SERVER ---------------------------------------------
+
+# Do not change this value which is necessary for HTTPS
 http_port: "443"
+
+# Indicate the server name
 http_host: "mywebsite.com"
+
+# Enter an email for the server manager
 http_admin_email: "webmaster@mywebsite.com"
+
+
+# --- SSL CERTIFICATE INFORMATIONS -----------------------------------
+
+# Where to place SSL keys and certificates
 ssl_path: "/etc/apache2"
+
+
+# --- MYSQL CONFIGURATION --------------------------------------------
+
+# Enter the root password
 mysql_root_pwd : "Azerty12"
+
+# Indicate the information for the MySQL user
 mysql_user_name: "mysql"
 mysql_user_pwd: "Azerty12"
 mysql_user_host: "0.0.0.0"
-dns_fqdn: "client.mywebsite.com"
+
+
+# --- BIND INFORMATIONS ----------------------------------------------
+
+# This must match the hostname of your remote host
 dns_name: "client"
+
+# It must correspond to: <hostname>.<server name>
+dns_fqdn: "client.mywebsite.com"
+
+# Public DNS to add in /etc/resolv.conf
+dns_add_public: "8.8.8.8"
 
 ...
