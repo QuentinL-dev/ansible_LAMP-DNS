@@ -9,7 +9,7 @@
 # 4. Ansible SSH user must be root (or uncomment 'become: true' after sudo configuration on remote host)
 #
 
-- name: LAMP+DNS deployment
+- name: LAMP-DNS deployment
   hosts: webserver
   #become: true
   vars_files:
@@ -117,6 +117,14 @@
         state: absent
         login_user: root
         login_password: "{{ mysql_root_pwd }}"
+      notify: Restart mysql
+
+    - name: MYSQL - Create new all granted user
+      mysql_user:
+        name: "{{ mysql_user_name }}"
+        password: "{{ mysql_user_pwd }}"
+        priv: '*.*:ALL'
+        host: "{{ mysql_user_host }}"
       notify: Restart mysql
 
     - name: BIND - DNS zone declaration
