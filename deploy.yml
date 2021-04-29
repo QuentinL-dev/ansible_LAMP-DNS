@@ -1,23 +1,42 @@
 ---
 
 #
+# LAMP-DNS DEPLOYMENT WITH ANSIBLE
+#
+#
+# INFORMATIONS
+#
+# Maintainer:     QuentinL
+# Version:        5
+# Release date:   04-29-2021
+#
+#
 # REQUIREMENTS
 #
-# 1. OS: Debian type OS (Debian, Ubuntu,...)
+# 1. Remote Host OS: Debian-like
 # 2. Stable SSH connexion with keys
 # 3. SSH with 'PermitRootLogin yes'
-# 4. Ansible SSH user must be root (or uncomment 'become: true' after sudo configuration on remote host)
+# 4. Ansible SSH user must be root
+#
+#
+# NOTE
+#
+# 1. Do not forget to configure the ./hosts file
+# 2. Add your settings in the ./vars/vars.yml file
 #
 
-- name: LAMP-DNS deployment
+
+- name: LAMP-DNS DEPLOYMENT
   hosts: webserver
-  #become: true
   vars_files:
     - vars/vars.yml
 
 
   tasks:
 
+    # ---
+    # Standard installation of required packages via APT
+    # ---
     - name: Package installation
       apt:
         name: "{{ item }}"
@@ -31,12 +50,19 @@
         - mariadb-server
         - bind9
 
+    # ---
+    # Modification of the security.conf file to improve the security of
+    # the HTTP server
+    # ---
     - name: APACHE - Set basic security configuration
       template:
         src: "templates/security.conf.j2"
         dest: "/etc/apache2/conf-available/security.conf"
       notify: Restart apache
 
+    # ---
+    # Complete deletion of the default site
+    # ---
     - name: APACHE - Remove apache default site
       file:
         path: "/var/www/html/index.html"
@@ -53,18 +79,27 @@
         state: absent
       notify: Restart apache
 
+    # ---
+    # Modifying the listening ports of the HTTP server
+    # ---
     - name: APACHE - Set apache listening port
       template:
         src: "templates/ports.conf.j2"
         dest: "/etc/apache2/ports.conf"
       notify: Restart apache
 
+    # ---
+    # Creating the root folder
+    # ---
     - name: APACHE - Apache document root creation
       file:
         path: "/var/www/html/{{ http_host }}"
         state: directory
         mode: '0755'
 
+    # ---
+    # Setting up the SSL protocol
+    # ---
     - name: APACHE - Enable SSL module
       shell: "/usr/sbin/a2enmod ssl"
       notify: Restart apache
@@ -86,6 +121,9 @@
         csr_path: "{{ ssl_path }}/cert.csr"
         provider: selfsigned
 
+    # ---
+    # Configuration and activation of the new website
+    # ---
     - name: APACHE - New site configuration
       template:
         src: "templates/apache.conf.j2"
@@ -101,6 +139,9 @@
         src: "templates/index.php.j2"
         dest: "/var/www/html/{{ http_host }}/index.php"
 
+    # ---
+    # Configuring MySQL Users
+    # ---
     - name: MYSQL - Set root password
       mysql_user:
         name: root
@@ -108,6 +149,17 @@
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
       notify: Restart mysql
 
+    - name: MYSQL - Create new all granted user
+      mysql_user:
+        name: "{{ mysql_user_name }}"
+        password: "{{ mysql_user_pwd }}"
+        priv: '*.*:ALL'
+        host: "{{ mysql_user_host }}"
+      notify: Restart mysql
+
+    # ---
+    # Removing MySQL default configurations
+    # ---
     - name: MYSQL - Remove anonymous accounts
       mysql_user:
         name: ''
@@ -125,14 +177,9 @@
         login_password: "{{ mysql_root_pwd }}"
       notify: Restart mysql
 
-    - name: MYSQL - Create new all granted user
-      mysql_user:
-        name: "{{ mysql_user_name }}"
-        password: "{{ mysql_user_pwd }}"
-        priv: '*.*:ALL'
-        host: "{{ mysql_user_host }}"
-      notify: Restart mysql
-
+    # ---
+    # Setting up the DNS zone
+    # ---
     - name: BIND - DNS zone declaration
       template:
         src: "templates/zone.j2"
@@ -145,6 +192,9 @@
         dest: "/etc/bind/named.conf.local"
       notify: Restart bind
 
+    # ---
+    # Updating required system configurations
+    # ---
     - name: SYSTEM - /etc/hosts configuration
       template:
         src: "templates/hosts.j2"
