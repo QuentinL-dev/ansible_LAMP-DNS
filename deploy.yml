@@ -3,7 +3,7 @@
 #
 # REQUIREMENTS
 #
-# 2. OS: Debian type OS (Debian, Ubuntu,...)
+# 1. OS: Debian type OS (Debian, Ubuntu,...)
 # 2. Stable SSH connexion with keys
 # 3. SSH with 'PermitRootLogin yes'
 # 4. Ansible SSH user must be root (or uncomment 'become: true' after sudo configuration on remote host)
