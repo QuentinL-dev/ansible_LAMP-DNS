@@ -31,6 +31,12 @@
         - mariadb-server
         - bind9
 
+    - name: APACHE - Set basic security configuration
+      template:
+        src: "templates/security.conf.j2"
+        dest: "/etc/apache2/conf-available/security.conf"
+      notify: Restart apache
+
     - name: APACHE - Remove apache default site
       file:
         path: "/var/www/html/index.html"
