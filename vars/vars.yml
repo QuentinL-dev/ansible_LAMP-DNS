@@ -1,0 +1,12 @@
+---
+
+host_ipv4: "192.168.1.40"
+http_port: "443"
+http_host: "mywebsite.com"
+http_admin_email: "webmaster@mywebsite.com"
+ssl_path: "/etc/apache2"
+mysql_root_pwd : "Azerty12"
+dns_fqdn: "client.mywebsite.com"
+dns_name: "client"
+
+...

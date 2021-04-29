@@ -1,0 +1,162 @@
+---
+
+#
+# REQUIREMENTS
+#
+# 2. OS: Debian type OS (Debian, Ubuntu,...)
+# 2. Stable SSH connexion with keys
+# 3. SSH with 'PermitRootLogin yes'
+# 4. Ansible SSH user must be root (or uncomment 'become: true' after sudo configuration on remote host)
+#
+
+- name: LAMP+DNS deployment
+  hosts: webserver
+  #become: true
+  vars_files:
+    - vars/vars.yml
+
+
+  tasks:
+
+    - name: Package installation
+      apt:
+        name: "{{ item }}"
+        update_cache: yes
+        state: latest
+      with_items:
+        - python3-pymysql
+        - openssl
+        - apache2
+        - php
+        - mariadb-server
+        - bind9
+
+    - name: APACHE - Remove apache default site
+      file:
+        path: "/var/www/html/index.html"
+        state: absent
+      notify: Restart apache
+
+    - name: APACHE - Disable apache default configuration
+      shell: "/usr/sbin/a2dissite 000-default.conf"
+      notify: Restart apache
+
+    - name: APACHE - Remove apache default configuration
+      file:
+        path: "/etc/apache2/site-available/000-default.conf"
+        state: absent
+      notify: Restart apache
+
+    - name: APACHE - Set apache listening port
+      template:
+        src: "templates/ports.conf.j2"
+        dest: "/etc/apache2/ports.conf"
+      notify: Restart apache
+
+    - name: APACHE - Apache document root creation
+      file:
+        path: "/var/www/html/{{ http_host }}"
+        state: directory
+        mode: '0755'
+
+    - name: APACHE - Enable SSL module
+      shell: "/usr/sbin/a2enmod ssl"
+      notify: Restart apache
+
+    - name: APACHE - Generate SSL private key
+      openssl_privatekey:
+        path: "{{ ssl_path }}/privkey.pem"
+
+    - name: APACHE - Generate SSL CSR
+      openssl_csr:
+        path: "{{ ssl_path }}/cert.csr"
+        privatekey_path: "{{ ssl_path }}/privkey.pem"
+        common_name: "{{ http_host }}"
+
+    - name: APACHE - Generate self-signed SSL certificate
+      openssl_certificate:
+        path: "{{ ssl_path }}/fullchain.pem"
+        privatekey_path: "{{ ssl_path }}/privkey.pem"
+        csr_path: "{{ ssl_path }}/cert.csr"
+        provider: selfsigned
+
+    - name: APACHE - New site configuration
+      template:
+        src: "templates/apache.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ http_host }}.conf"
+      notify: Restart apache
+
+    - name: APACHE - Enable new site
+      shell: "/usr/sbin/a2ensite {{ http_host }}.conf"
+      notify: Restart apache
+
+    - name: APACHE - Add default page to new site
+      template:
+        src: "templates/index.php.j2"
+        dest: "/var/www/html/{{ http_host }}/index.php"
+
+    - name: MYSQL - Set root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_pwd }}"
+        login_unix_socket: "/var/run/mysqld/mysqld.sock"
+      notify: Restart mysql
+
+    - name: MYSQL - Remove anonymous accounts
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_pwd }}"
+      notify: Restart mysql
+
+    - name: MYSQL - Remove test databases
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_pwd }}"
+      notify: Restart mysql
+
+    - name: BIND - DNS zone declaration
+      template:
+        src: "templates/zone.j2"
+        dest: "/etc/bind/{{ dns_fqdn }}.zone"
+      notify: Restart bind
+
+    - name: BIND - DNS zone configuration
+      template:
+        src: "templates/named.conf.local.j2"
+        dest: "/etc/bind/named.conf.local"
+      notify: Restart bind
+
+    - name: SYSTEM - /etc/hosts configuration
+      template:
+        src: "templates/hosts.j2"
+        dest: "/etc/hosts"
+
+    - name: SYSTEM - /etc/resolv.conf configuration
+      template:
+        src: "templates/resolv.conf.j2"
+        dest: "/etc/resolv.conf"
+
+
+  handlers:
+
+    - name: Restart apache
+      service:
+        name: apache2
+        state: restarted
+
+    - name: Restart mysql
+      service:
+        name: mariadb
+        state: restarted
+
+    - name: Restart bind
+      service:
+        name: bind9
+        state: restarted
+
+...

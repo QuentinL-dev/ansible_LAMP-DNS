@@ -1,0 +1,5 @@
+zone "{{ http_host }}" {
+    type master;
+    file "/etc/bind/{{ dns_fqdn }}.zone";
+};
+

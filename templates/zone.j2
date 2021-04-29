@@ -1,0 +1,12 @@
+$TTL	604800
+@	IN	SOA	{{ dns_fqdn }}. root.{{ http_host }}. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	{{ dns_fqdn }}.
+{{ dns_name }}	IN	A	{{ host_ipv4 }}
+www	IN	A	{{ host_ipv4 }}
+fr	IN	CNAME	www.{{ http_host }}.

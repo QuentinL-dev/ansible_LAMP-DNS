@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Site-default page</title>
+  </head>
+
+
+  <style media="screen">
+
+    html {
+      background: rgba(4, 22, 43, 1);
+    }
+    body {
+      color: #FFF;
+    }
+    #title {
+      font-size: 50px;
+      width: 100vw;
+      text-align: center;
+    }
+    #core {
+      margin: 0 auto;
+      font-size: 25px;
+    }
+    #core td {
+      width: 200px;
+    }
+    #info {
+      margin-top: 50px;
+      font-size: 20px;
+      width: 100vw;
+      text-align: center;
+    }
+
+  </style>
+
+
+  <body>
+
+    <p id="title">Welcome to {{ http_host }}</p>
+
+    <table id="core">
+      <tr>
+        <td style="text-align: right;">URL&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;</td>
+        <td>https://{{ http_host }}</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">Server&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;</td>
+        <td>Apache2</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">Hosted on&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;</td>
+        <td>{{ dns_fqdn }}</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">OS&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;</td>
+        <td>Debian 10 buster</td>
+      </tr>
+    </table>
+
+    <p id="info">KEEP CALM BECAUSE IT WORKS!<br />
+    If you see this page, the http server is successfully installed and working.<br />
+    It's up to the developers to play!</p>
+
+  </body>
+
+</html>

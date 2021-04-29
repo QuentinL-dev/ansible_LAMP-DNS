@@ -1,0 +1,22 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:{{ http_port }}>
+	ServerName www.{{ http_host }}
+        ServerAlias {{ http_host }}
+
+	ServerAdmin {{ http_admin_email }}
+	DocumentRoot /var/www/html/{{ http_host }}
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        SSLEngine on
+        SSLCertificateFile {{ ssl_path }}/fullchain.pem
+        SSLCertificateKeyFile {{ ssl_path }}/privkey.pem
+
+        <Directory "/var/www/html/{{ http_host }}">
+          Options -Indexes +FollowSymLinks
+          AllowOverride None
+          Require all granted
+        </Directory>
+</VirtualHost>
+</IfModule>
