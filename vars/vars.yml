@@ -50,4 +50,19 @@ dns_fqdn: "client.mywebsite.com"
 # Public DNS to add in /etc/resolv.conf
 dns_add_public: "8.8.8.8"
 
+
+# --- TOMCAT INFORMATIONS --------------------------------------------
+
+# HTTP connector port
+tomcat_http_port: "8080"
+
+# AJP connector port
+tomcat_ajp_port: "8009"
+
+# Enter the admin password
+tomcat_admin_pwd: "Azerty12"
+
+# Which IP is authorized to connect to the manager portal
+tomcat_allowed_ip: "192.168.1.15"
+
 ...
