@@ -1,0 +1,84 @@
+---
+
+#
+# LAMP-DNS DEPLOYEMENT WITH ANSIBLE
+# -> TOMCAT9 INSTALLATION
+#
+#
+# INFORMATIONS
+#
+# Maintainer:     QuentinL
+# Version:        1
+# Release date:   05-04-2021
+#
+#
+# REQUIREMENTS
+#
+# (See deploy.yml)
+#
+#
+# NOTE
+#
+# (See deploy.yml)
+#
+
+
+- name: TOMCAT9 INSTALLATION
+  hosts: webserver
+  vars_files:
+    - vars/vars.yml
+
+
+  tasks:
+
+    # ---
+    # Standard installation of required packages via APT
+    # ---
+    - name: Package installation
+      apt:
+        name: "{{ item }}"
+        update_cache: yes
+        state: latest
+      with_items:
+        - tomcat9
+        - tomcat9-admin
+
+    # ---
+    # Modifying the listening ports for HTTP and AJP connectors
+    # ---
+    - name: TOMCAT - Set tomcat listening ports
+      template:
+        src: "templates/tomcat/server.xml.j2"
+        dest: "/etc/tomcat9/server.xml"
+      notify: Restart tomcat
+
+    # ---
+    # Configuring tomcat users
+    # ---
+    - name: TOMCAT - Users configuration
+      template:
+        src: "/templates/tomcat/tomcat-users.xml.j2"
+        dest: "/etc/tomcat9/tomcat-users.xml"
+      notify: Restart tomcat
+
+    # ---
+    # Setting up tomcat manager security
+    # ---
+    - name: TOMCAT - Set IP restriction for tomcat manager
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: "/templates/tomcat/manager.xml.j2", dest: "/etc/tomcat9/Catalina/localhost/manager.xml" }
+        - { src: "/templates/tomcat/host-manager.xml.j2", dest: "/etc/tomcat9/Catalina/localhost/host-manager.xml" }
+      notify: Restart tomcat
+
+
+  handlers:
+
+    - name: Restart tomcat
+      service:
+        name: tomcat9
+        state: restarted
+
+...
