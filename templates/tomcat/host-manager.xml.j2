@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Context path="/host-manager" 
+	docBase="/usr/share/tomcat9-admin/host-manager"
+	antiResourceLocking="false" privileged="true" >
+
+        <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+            allow="{{ tomcat_allowed_ip }}" />
+
+</Context>
