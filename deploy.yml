@@ -7,7 +7,7 @@
 # INFORMATIONS
 #
 # Maintainer:     QuentinL
-# Version:        5
+# Version:        6
 # Release date:   04-29-2021
 #
 #
@@ -140,12 +140,22 @@
         dest: "/var/www/html/{{ http_host }}/index.php"
 
     # ---
-    # Configuring MySQL Users
+    # Starting MySQL services
+    # ---
+    - name: MYSQL - Ensure MySQL started
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    # ---
+    # Configuring MySQL users
     # ---
     - name: MYSQL - Set root password
       mysql_user:
         name: root
         password: "{{ mysql_root_pwd }}"
+        host: localhost
         login_unix_socket: "/var/run/mysqld/mysqld.sock"
       notify: Restart mysql
 
@@ -153,8 +163,11 @@
       mysql_user:
         name: "{{ mysql_user_name }}"
         password: "{{ mysql_user_pwd }}"
+        login_user: root
+        login_password: "{{ mysql_root_pwd }}"
         priv: '*.*:ALL'
         host: "{{ mysql_user_host }}"
+        state: present
       notify: Restart mysql
 
     # ---
@@ -215,7 +228,7 @@
 
     - name: Restart mysql
       service:
-        name: mariadb
+        name: mysql
         state: restarted
 
     - name: Restart bind
